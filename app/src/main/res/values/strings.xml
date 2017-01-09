@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">DigitDetector</string>
+    <string name="action_settings">Settings</string>
+    <string name="btn_send">SEND</string>
+    <string name="btn_accept">Accept</string>
+    <string name="btn_retake">Retake</string>
+    <string name="btn_toServer">WiFi</string>
+    <string name="btn_excel">Excel</string>
+</resources>

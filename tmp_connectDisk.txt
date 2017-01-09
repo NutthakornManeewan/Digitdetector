@@ -1,0 +1,36 @@
+//    public void connectToDisk (String ipAddress, String user, String passWord) {
+//        FTPClient ftp = null;
+//        Log.d(TAG, "Call FTPClient library.");
+//        try {
+//            ftp = new FTPClient();
+//            Log.d(TAG, "Create new Object.");
+//            ftp.connect(ipAddress);
+//            Log.d(TAG, "Connect to " + ipAddress + " successfully.");
+//
+//            if (ftp.login(user, passWord)) {
+//                Log.d(TAG, "Login to " + ipAddress + " successfully.");
+//                ftp.enterLocalPassiveMode();
+//                ftp.setFileType(FTP.BINARY_FILE_TYPE);
+//                Log.d(TAG, "Entered local passive mode.");
+//
+////                String data = "/sdcard/vivekm4a.m4a";
+////                FileInputStream in = new FileInputStream(new File(data));
+////                boolean result = ftp.storeFile("/vivekm4a.m4a", in);
+////                in.close();
+//
+////                if (result) Log.d("Upload status", "Successed");
+//                ftp.logout();
+//                Log.d(TAG, "Logout from " + ipAddress + " successfully.");
+//                ftp.disconnect();
+//                Log.d(TAG, "Disconnect from " + ipAddress + " successfully.");
+//            }
+//        }
+//        catch (SocketException SE) {
+//            SE.printStackTrace();
+//            Log.d(TAG, SE.toString());
+//        }
+//        catch (IOException e) {
+//            e.printStackTrace();
+//            Log.d(TAG, e.toString());
+//        }
+//    }
