@@ -175,12 +175,17 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         ArrayList<Rect> rects = null;
+        ArrayList rect_den    = null;
         Mat checkMat          = null;
         mRgba                 = inputFrame.rgba();
+        int frame_width       = mRgba.width();
+        int frame_height      = mRgba.height();
+        Point text_pos        = new Point(100, frame_height-50);
 
         if (isTouch == true) {
             checkMat      = mDetector.process(mRgba);
             rects         = mDetector.GetRects();
+            rect_den      = mDetector.GetDensity();
             RectforCal    = (ArrayList<Rect>) rects.clone();
             MatforCal     = checkMat;
             NUMBER_RESULT = 0;
@@ -191,17 +196,17 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
                     Imgproc.rectangle(mRgba, new Point(rects.get(i).tl().x - 7, rects.get(i).tl().y - 7),
                             new Point(rects.get(i).br().x + 7, rects.get(i).br().y + 7),
                             new Scalar(0, 255, 0, 255), THICKNESS, LINETYPE, SHIFT);
-                    double area = (rects.get(i).br().x - rects.get(i).tl().x) * (rects.get(i).br().y - rects.get(i).tl().y);
-                    Imgproc.putText(mRgba, Double.toString((rects.get(i).br().x-rects.get(i).tl().x)/(rects.get(i).br().y-rects.get(i).tl().y)), rects.get(i).tl(), 1, 2, new Scalar(0, 255, 0, 255), 1);
+                    //Imgproc.putText(mRgba, Double.toString(rects.get(i).area()), rects.get(i).tl(), 1, 2, new Scalar(0, 255, 0, 255), 1);
+                    Imgproc.putText(mRgba, rect_den.get(i).toString(), rects.get(i).tl(), 1, 2, new Scalar(0, 255, 0, 255), 1);
                 }
-                Imgproc.putText(mRgba, Double.toString(NUMBER_RESULT), new Point(50, 150), 2, 3.5, new Scalar(0, 255, 0, 255), 5);
+                Imgproc.putText(mRgba, Double.toString(NUMBER_RESULT), text_pos, 2, 3.5, new Scalar(0, 255, 0, 255), 5);
             }
         }
         else if (isTouch == false) {
             if (!RectforCal.isEmpty()) {
                 mDetector.SortElements();
                 NUMBER_RESULT = mDetector.GetString();
-                Imgproc.putText(mRgba, Double.toString(NUMBER_RESULT), new Point(50, 150), 2, 3.5, new Scalar(0, 255, 0, 255), 5);
+                Imgproc.putText(mRgba, Double.toString(NUMBER_RESULT), text_pos, 2, 3.5, new Scalar(0, 255, 0, 255), 5);
                 Log.i(TAG, "Number result : " + NUMBER_RESULT);
             }
         }

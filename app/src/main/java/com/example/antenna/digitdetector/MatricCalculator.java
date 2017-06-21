@@ -23,8 +23,7 @@ public class MatricCalculator {
     }
 
     public static double[][] multiplicar() {
-
-        int aRows = matA.length;
+    int aRows = matA.length;
         int aColumns = matA[0].length;
         int bRows = matB.size();
         int bColumns = matB.get(0).length;
@@ -48,7 +47,6 @@ public class MatricCalculator {
                 }
             }
         }
-
         return matResult;
     }
 

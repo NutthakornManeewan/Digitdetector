@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">DigitDetector</string>
     <string name="action_settings">Settings</string>
-    <string name="btn_send">SEND</string>
-    <string name="btn_accept">Accept</string>
-    <string name="btn_retake">Retake</string>
-    <string name="btn_toServer">WiFi</string>
-    <string name="btn_excel">Excel</string>
+    <string name="btn_send">ส่งไฟล์</string>
+    <string name="btn_accept">ถ่ายภาพ</string>
+    <string name="btn_retake">ยกเลิกถ่ายภาพ</string>
+    <string name="btn_toServer">ดึงไฟล์</string>
+    <string name="btn_excel">อ่านไฟล์</string>
 </resources>

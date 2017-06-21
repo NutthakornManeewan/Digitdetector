@@ -49,9 +49,14 @@ public class KNNClassifier {
             chopIdx[i] = (int)(index_arr[i]/22);
             count[chopIdx[i]]++;
         }
-        if (count[2]!=0 && count[8]!=0) { max = 20; }
-        else if ((count[5]!=0 && count[6]!=0) && (count[5]>=count[6])) { max = 50; }
-        else if (count[1]!=0 && count[4]!=0) { max = 40; }
+        if (count[2]!=0 && count[8]!=0)
+            max = 20;
+        else if ((count[5]!=0 && count[6]!=0) && (count[5]>=count[6]))
+            max = 50;
+        else if (count[1]!=0 && count[4]!=0 && count[0]==0)
+            max = 40;
+        else if (count[0]!=0 && count[1]!=0 && count[4]!=0 && count[8]!=0 && count[9]!=0)
+            max = 10;
         else {
             for (int j=0; j<count.length; j++) {
                 if (count[j] > max)
@@ -60,8 +65,8 @@ public class KNNClassifier {
             max = max * 10;
         }
 
-        Log.d(TAG, "Can:["+count[0]+count[1]+count[2]+count[3]+count[4]+count[5]+count[6]+count[7]+count[8]+count[9]+"]");
-        Log.d(TAG, "max:" + max);
+        //Log.d(TAG, "Can:["+count[0]+count[1]+count[2]+count[3]+count[4]+count[5]+count[6]+count[7]+count[8]+count[9]+"]");
+        //Log.d(TAG, "max:" + max);
         return max;
     }
 }

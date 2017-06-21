@@ -22,29 +22,29 @@
         android:id="@+id/linearLayout"
         android:layout_alignParentBottom="true">
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_toServer"
             android:onClick="checkWifi" />
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_excel"
             android:onClick="excelProcess" />
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_accept"
             android:onClick="acceptImage" />
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_retake"
             android:onClick="retakeImage" />
         <Button
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/btn_accept"
+            android:text="@string/btn_send"
             android:onClick="acceptData" />
     </LinearLayout>
 
@@ -61,6 +61,7 @@
         android:id="@+id/spinner_customer"
         android:layout_width="wrap_content"
         android:layout_height="match_parent" />
+
         <Spinner
             android:id="@+id/spinner_order"
             android:layout_width="wrap_content"
