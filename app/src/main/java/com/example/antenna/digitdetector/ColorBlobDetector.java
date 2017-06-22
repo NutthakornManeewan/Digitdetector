@@ -3,15 +3,6 @@ package com.example.antenna.digitdetector;
 import android.os.Environment;
 import android.util.Log;
 
-import com.google.android.gms.appdatasearch.Feature;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
@@ -21,6 +12,13 @@ import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.HOGDescriptor;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ColorBlobDetector {
 
@@ -55,7 +53,7 @@ public class ColorBlobDetector {
 
     public Mat process (Mat rgbaImage) {
         RECTS.clear();
-        ArrayList<MatOfPoint> mContours = new ArrayList<MatOfPoint>();
+        ArrayList<MatOfPoint> mContours = new ArrayList<>();
 
         // ***** Preprocess - 01 *****
         Imgproc.cvtColor    (rgbaImage, mGray, Imgproc.COLOR_RGB2GRAY);
@@ -84,32 +82,31 @@ public class ColorBlobDetector {
             double orientation     = 0.0;
             double contourArea = Imgproc.contourArea(mContours.get(i));
 
-            if (contour2f.size().height >= 5)
+            if (contour2f.size().height >= 5) {
                 orientation = Imgproc.fitEllipse(contour2f).angle;
+            }
 
             Imgproc.approxPolyDP (contour2f, ApproxCurve, ApproxDistance, true); // find line around polygon.
             MatOfPoint points    = new MatOfPoint (ApproxCurve.toArray());
             Rect rect            = Imgproc.boundingRect (points);
-            double tmpX = rect.br().x - rect.tl().x;
-            double tmpY = rect.br().y - rect.tl().y;
-            double ratio_XY = tmpX / tmpY;
+            double tempRectWidth = rect.br().x - rect.tl().x;
+            double tempRectHeight= rect.br().y - rect.tl().y;
+            double aspectRatio   = tempRectWidth / tempRectHeight;
 
             /* ***** Area size *****
                 Only my ASUS-Zenfone 2
                 Horizontal : 884736
                 Vertical   : 622080
              * *********************/
-
-            if (rect.br().x <= mThreshold.size().width && rect.br().y <= mThreshold.size().height && rect.tl().x >= 0 && rect.tl().y >= 0) {
-                Log.i(TAG, "Width: " + mThreshold.size().width + " | Height: " + mThreshold.size().height);
-                Log.i(TAG, "BR(: " + rect.br().x + ", " + rect.br().y);
-                Log.i(TAG, "TL(: " + rect.tl().x + ", " + rect.tl().y);
-                if (rect.area() > 1500 && rect.area() < 100000) {
-                    if (ratio_XY > 0.1 && ratio_XY < 0.9) {
-                        //if (contour2f.size().height > 5 && Math.abs(orientation) >= 60) {
+            if (tempRectWidth-tempRectHeight < 0) {
+                if (rect.br().x <= mThreshold.size().width && rect.br().y <= mThreshold.size().height && rect.tl().x >= 0 && rect.tl().y >= 0) {
+                    if (rect.area() > 1500 && rect.area() < 100000) {
+                        if (aspectRatio > 0.1 && aspectRatio < 0.9) {
+                            //if (contour2f.size().height > 5 && Math.abs(orientation) >= 60) {
                             RECTS.add(rect);
-                            rect_density.add(contourArea/rect.area());
-                        //}
+                            rect_density.add(contourArea / rect.area());
+                            //}
+                        }
                     }
                 }
             }

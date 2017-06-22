@@ -1,32 +1,9 @@
 package com.example.antenna.digitdetector;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-import org.opencv.imgproc.Imgproc;
-
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -38,13 +15,29 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
 import jxl.read.biff.BiffException;
 import jxl.write.WriteException;
 
 
 public class MainActivity extends Activity implements CvCameraViewListener2, AdapterView.OnItemSelectedListener {
-    private static final String TAG = "OCVSample::Activity";
-    private static final String TAG3 = "Result";
+    private static final String OPENCV_TAG = "OCVSample::Activity";
+    private static final String NUMBER_TAG = "Result";
 
     private Spinner spinner_customer;
     private Spinner spinner_order;
@@ -77,7 +70,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
         public void onManagerConnected(int status) {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS: {
-                    Log.i(TAG, "OpenCV loaded successfully");
+                    Log.i(OPENCV_TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
                 }
                 break;
@@ -91,12 +84,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
 
     private GoogleApiClient client;
     public MainActivity() {
-        Log.i(TAG, "Instantiated new " + this.getClass());
+        Log.i(OPENCV_TAG, "Instantiated new " + this.getClass());
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.i(TAG, "called onCreate");
+        Log.i(OPENCV_TAG, "called onCreate");
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -121,10 +114,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
     public void onResume() {
         super.onResume();
         if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            Log.d(OPENCV_TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
         } else {
-            Log.d(TAG, "OpenCV library found inside package. Using it!");
+            Log.d(OPENCV_TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
     }
@@ -153,7 +146,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
     public void excelProcess (View view) throws IOException, BiffException {
         excelP.readExcelSetup();
         customer_list = excelP.readExcelCustomerSheet();
-        adapter_customer = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_item, customer_list);
+        adapter_customer = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, customer_list);
         adapter_customer.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner_customer.setAdapter(adapter_customer);
         spinner_customer.setOnItemSelectedListener(this);
@@ -174,15 +167,15 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        ArrayList<Rect> rects = null;
-        ArrayList rect_den    = null;
-        Mat checkMat          = null;
+        ArrayList<Rect> rects;
+        ArrayList rect_den;
+        Mat checkMat;
         mRgba                 = inputFrame.rgba();
-        int frame_width       = mRgba.width();
+//        int frame_width       = mRgba.width();
         int frame_height      = mRgba.height();
         Point text_pos        = new Point(100, frame_height-50);
 
-        if (isTouch == true) {
+        if (isTouch) {
             checkMat      = mDetector.process(mRgba);
             rects         = mDetector.GetRects();
             rect_den      = mDetector.GetDensity();
@@ -201,13 +194,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
                 }
                 Imgproc.putText(mRgba, Double.toString(NUMBER_RESULT), text_pos, 2, 3.5, new Scalar(0, 255, 0, 255), 5);
             }
-        }
-        else if (isTouch == false) {
+        } else {
             if (!RectforCal.isEmpty()) {
                 mDetector.SortElements();
                 NUMBER_RESULT = mDetector.GetString();
                 Imgproc.putText(mRgba, Double.toString(NUMBER_RESULT), text_pos, 2, 3.5, new Scalar(0, 255, 0, 255), 5);
-                Log.i(TAG, "Number result : " + NUMBER_RESULT);
+                Log.i(NUMBER_TAG, "Number result : " + NUMBER_RESULT);
             }
         }
         return mRgba;
@@ -269,7 +261,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
         Log.i("Excel", "Customer index : " + customer_index);
         order_list.clear();
         order_list    = excelP.readExcelOrderReportSheet(customer_list.get(position));
-        adapter_order = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_item, order_list);
+        adapter_order = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, order_list);
         adapter_order.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner_order.setAdapter(adapter_order);
         spinner_order.setOnItemSelectedListener(dropdown_getindex);
