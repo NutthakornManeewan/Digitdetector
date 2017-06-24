@@ -57,24 +57,24 @@ public class ColorBlobDetector {
 
         // ***** Preprocess - 01 *****
         Imgproc.cvtColor    (rgbaImage, mGray, Imgproc.COLOR_RGB2GRAY);
-        Imgproc.GaussianBlur(mGray, mBlur, new Size(7,7), 0.5, 0.5);
+        Imgproc.GaussianBlur(mGray, mBlur, new Size(7,7), 1.5, 1.5);
         Core.addWeighted    (mGray, 1.5, mBlur, -0.5, 0, mSharp);
         Imgproc.medianBlur  (mSharp, mBlur, 3);
-        Imgproc.GaussianBlur(mBlur, mBlur, new Size(7,7), 0.5, 0.5);
+        //Imgproc.GaussianBlur(mBlur, mBlur, new Size(7,7), 0.5, 0.5);
 
         // ***** Thresholding *****
-        Imgproc.threshold   (mBlur, mThreshold, 0, 255, Imgproc.THRESH_OTSU);
-        Imgproc.threshold   (mThreshold, mThreshold, 0, 255, Imgproc.THRESH_BINARY_INV);
-        Imgproc.GaussianBlur(mThreshold, mThreshold, new Size(7,7), 0.2, 0.2);
+        Mat RectKernel = Imgproc.getStructuringElement (Imgproc.MORPH_RECT, new Size(5, 7));
+        Mat RectOpenErode = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7,7));
+        Imgproc.adaptiveThreshold(mBlur, mThreshold, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 75, 7.0);
+        Imgproc.morphologyEx(mThreshold, mThreshold, Imgproc.MORPH_ERODE, RectKernel);
+        Imgproc.threshold (mThreshold, mThreshold, 0, 255, Imgproc.THRESH_BINARY_INV);
+        Imgproc.morphologyEx(mThreshold, mThreshold, Imgproc.MORPH_OPEN, RectOpenErode);
 
         // ***** Preprocess - 02 *****
-        widthMat  = Math.floor(mThreshold.size().width * 0.005);
-        heightMat = Math.floor(mThreshold.size().height * 0.010);
-
-        Mat RectKernel = Imgproc.getStructuringElement (Imgproc.MORPH_RECT, new Size(widthMat, heightMat));
-        Imgproc.morphologyEx(mThreshold, mReducedNoise, Imgproc.MORPH_CLOSE, RectKernel);
-        Imgproc.morphologyEx(mThreshold, mReducedNoise_t, Imgproc.MORPH_CLOSE, RectKernel);
-        Imgproc.findContours(mReducedNoise, mContours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+        widthMat  = Math.floor(mThreshold.size().width * 0.002);
+        heightMat = Math.floor(mThreshold.size().height * 0.005);
+//        Imgproc.morphologyEx(mThreshold, mReducedNoise_t, Imgproc.MORPH_CLOSE, RectKernel);
+        Imgproc.findContours(mThreshold, mContours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
         for (int i=0; i < mContours.size(); i++) {
             MatOfPoint2f contour2f = new MatOfPoint2f (mContours.get(i).toArray());
@@ -98,8 +98,8 @@ public class ColorBlobDetector {
                 Horizontal : 884736
                 Vertical   : 622080
              * *********************/
-            if (tempRectWidth-tempRectHeight < 0) {
-                if (rect.br().x <= mThreshold.size().width && rect.br().y <= mThreshold.size().height && rect.tl().x >= 0 && rect.tl().y >= 0) {
+            if (rect.br().x <= mThreshold.size().width && rect.br().y <= mThreshold.size().height && rect.tl().x >= 0 && rect.tl().y >= 0) {
+                if (tempRectWidth-tempRectHeight < 0) {
                     if (rect.area() > 1500 && rect.area() < 100000) {
                         if (aspectRatio > 0.1 && aspectRatio < 0.9) {
                             //if (contour2f.size().height > 5 && Math.abs(orientation) >= 60) {

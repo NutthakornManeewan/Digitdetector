@@ -169,13 +169,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         ArrayList<Rect> rects;
         ArrayList rect_den;
-        Mat checkMat;
+        Mat checkMat = null;
         mRgba                 = inputFrame.rgba();
-//        int frame_width       = mRgba.width();
         int frame_height      = mRgba.height();
         Point text_pos        = new Point(100, frame_height-50);
 
-        if (isTouch) {
+        if (isTouch == true) {
             checkMat      = mDetector.process(mRgba);
             rects         = mDetector.GetRects();
             rect_den      = mDetector.GetDensity();
@@ -194,7 +193,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
                 }
                 Imgproc.putText(mRgba, Double.toString(NUMBER_RESULT), text_pos, 2, 3.5, new Scalar(0, 255, 0, 255), 5);
             }
-        } else {
+        } else if(isTouch == false) {
             if (!RectforCal.isEmpty()) {
                 mDetector.SortElements();
                 NUMBER_RESULT = mDetector.GetString();
@@ -202,7 +201,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
                 Log.i(NUMBER_TAG, "Number result : " + NUMBER_RESULT);
             }
         }
-        return mRgba;
+        return checkMat;
     }
 
     @Override
