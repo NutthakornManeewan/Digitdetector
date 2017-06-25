@@ -168,16 +168,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         ArrayList<Rect> rects;
-        ArrayList rect_den;
         Mat checkMat = null;
         mRgba                 = inputFrame.rgba();
         int frame_height      = mRgba.height();
         Point text_pos        = new Point(100, frame_height-50);
 
-        if (isTouch == true) {
+        if (isTouch) {
             checkMat      = mDetector.process(mRgba);
             rects         = mDetector.GetRects();
-            rect_den      = mDetector.GetDensity();
             RectforCal    = (ArrayList<Rect>) rects.clone();
             MatforCal     = checkMat;
             NUMBER_RESULT = 0;
@@ -189,11 +187,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
                             new Point(rects.get(i).br().x + 7, rects.get(i).br().y + 7),
                             new Scalar(0, 255, 0, 255), THICKNESS, LINETYPE, SHIFT);
                     //Imgproc.putText(mRgba, Double.toString(rects.get(i).area()), rects.get(i).tl(), 1, 2, new Scalar(0, 255, 0, 255), 1);
-                    Imgproc.putText(mRgba, rect_den.get(i).toString(), rects.get(i).tl(), 1, 2, new Scalar(0, 255, 0, 255), 1);
                 }
                 Imgproc.putText(mRgba, Double.toString(NUMBER_RESULT), text_pos, 2, 3.5, new Scalar(0, 255, 0, 255), 5);
             }
-        } else if(isTouch == false) {
+        } else {
             if (!RectforCal.isEmpty()) {
                 mDetector.SortElements();
                 NUMBER_RESULT = mDetector.GetString();
@@ -201,7 +198,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
                 Log.i(NUMBER_TAG, "Number result : " + NUMBER_RESULT);
             }
         }
-        return checkMat;
+        return mRgba;
     }
 
     @Override

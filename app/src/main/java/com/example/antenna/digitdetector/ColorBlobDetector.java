@@ -22,18 +22,16 @@ import java.util.List;
 
 public class ColorBlobDetector {
 
-    private static final String TAG  = "Result";
-    private static final String TAG3 = "Result";
-
-    public double NUMBER_RESULT  = 0;
-    public static List<float[]> desList1 = new ArrayList<float[]>();
+    private static final String ResearchTag  = "Result";
+    public double NUMBER_RESULT           = 0;
+    public static List<float[]> desList1  = new ArrayList<float[]>();
     public ArrayList<Double> rect_density = new ArrayList<Double>();
-    public ArrayList<Rect> RECTS = new ArrayList<Rect>();
+    public ArrayList<Rect> RECTS          = new ArrayList<Rect>();
     public double widthMat=0.0, heightMat=0.0;
 
     // ----- Cache -----
     Mat mGray                = new Mat();
-    Mat mSharp            = new Mat();
+    Mat mSharp               = new Mat();
     Mat mBlur                = new Mat();
     Mat mThreshold           = new Mat();
     Mat mReducedNoise        = new Mat();
@@ -47,44 +45,38 @@ public class ColorBlobDetector {
     public void modelReader() {
         if (desList1.isEmpty()) {
             readModel("Model", desList1);
-            Log.e(TAG, "Read model successfully!");
+            Log.e(ResearchTag, "Read model successfully!");
         }
     }
 
     public Mat process (Mat rgbaImage) {
         RECTS.clear();
         ArrayList<MatOfPoint> mContours = new ArrayList<>();
+        Mat RectKernel    = Imgproc.getStructuringElement (Imgproc.MORPH_RECT, new Size(5, 7));
+        Mat RectOpenErode = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7,7));
+        double MAXIMUM_AREA = 100000, MINIMUM_AREA = 1500, MIN_RATIO=0.1, MAX_RATIO=0.9, HEIGHT_TH=150;
 
         // ***** Preprocess - 01 *****
         Imgproc.cvtColor    (rgbaImage, mGray, Imgproc.COLOR_RGB2GRAY);
         Imgproc.GaussianBlur(mGray, mBlur, new Size(7,7), 1.5, 1.5);
         Core.addWeighted    (mGray, 1.5, mBlur, -0.5, 0, mSharp);
         Imgproc.medianBlur  (mSharp, mBlur, 3);
-        //Imgproc.GaussianBlur(mBlur, mBlur, new Size(7,7), 0.5, 0.5);
 
         // ***** Thresholding *****
-        Mat RectKernel = Imgproc.getStructuringElement (Imgproc.MORPH_RECT, new Size(5, 7));
-        Mat RectOpenErode = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7,7));
         Imgproc.adaptiveThreshold(mBlur, mThreshold, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 75, 7.0);
         Imgproc.morphologyEx(mThreshold, mThreshold, Imgproc.MORPH_ERODE, RectKernel);
         Imgproc.threshold (mThreshold, mThreshold, 0, 255, Imgproc.THRESH_BINARY_INV);
         Imgproc.morphologyEx(mThreshold, mThreshold, Imgproc.MORPH_OPEN, RectOpenErode);
 
-        // ***** Preprocess - 02 *****
+        // ***** Find contour and filtering process *****
         widthMat  = Math.floor(mThreshold.size().width * 0.002);
         heightMat = Math.floor(mThreshold.size().height * 0.005);
-//        Imgproc.morphologyEx(mThreshold, mReducedNoise_t, Imgproc.MORPH_CLOSE, RectKernel);
         Imgproc.findContours(mThreshold, mContours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
         for (int i=0; i < mContours.size(); i++) {
             MatOfPoint2f contour2f = new MatOfPoint2f (mContours.get(i).toArray());
             double ApproxDistance  = Imgproc.arcLength (contour2f, true) * 0.0005 ;
-            double orientation     = 0.0;
-            double contourArea = Imgproc.contourArea(mContours.get(i));
-
-            if (contour2f.size().height >= 5) {
-                orientation = Imgproc.fitEllipse(contour2f).angle;
-            }
+            double contourArea     = Imgproc.contourArea(mContours.get(i));
 
             Imgproc.approxPolyDP (contour2f, ApproxCurve, ApproxDistance, true); // find line around polygon.
             MatOfPoint points    = new MatOfPoint (ApproxCurve.toArray());
@@ -92,25 +84,24 @@ public class ColorBlobDetector {
             double tempRectWidth = rect.br().x - rect.tl().x;
             double tempRectHeight= rect.br().y - rect.tl().y;
             double aspectRatio   = tempRectWidth / tempRectHeight;
-
             /* ***** Area size *****
                 Only my ASUS-Zenfone 2
                 Horizontal : 884736
                 Vertical   : 622080
-             * *********************/
+             **********************/
             if (rect.br().x <= mThreshold.size().width && rect.br().y <= mThreshold.size().height && rect.tl().x >= 0 && rect.tl().y >= 0) {
-                if (tempRectWidth-tempRectHeight < 0) {
-                    if (rect.area() > 1500 && rect.area() < 100000) {
-                        if (aspectRatio > 0.1 && aspectRatio < 0.9) {
-                            //if (contour2f.size().height > 5 && Math.abs(orientation) >= 60) {
-                            RECTS.add(rect);
-                            rect_density.add(contourArea / rect.area());
-                            //}
+                    if (tempRectWidth - tempRectHeight < 0) {
+                        if (rect.area() > MINIMUM_AREA && rect.area() < MAXIMUM_AREA) {
+                            if (aspectRatio > MIN_RATIO && aspectRatio < MAX_RATIO) {
+                                if (Math.abs(rect.tl().y - rect.br().y) >= HEIGHT_TH) {
+                                    RECTS.add(rect);
+                                    rect_density.add(contourArea / rect.area());
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
         return mReducedNoise_t;
     }
 
@@ -133,20 +124,34 @@ public class ColorBlobDetector {
                 }
             }
         }
+
+        if (RECTS.size()>1) {
+            ArrayList<Integer> tmpIndexToRemove = new ArrayList<>();
+            for (int i=1; i<RECTS.size(); i++) {
+                if (isInside(RECTS.get(i-1), RECTS.get(i))) {
+                    tmpIndexToRemove.add(i);
+                }
+            }
+            for (int j=0; j<tmpIndexToRemove.size(); j++)
+                RECTS.remove((int)tmpIndexToRemove.get(j));
+        }
+
         // ---- NIGHTMARE IS STARTING ----
         // ---- Feature Extraction -----
         int stringCode[] = new int[RECTS.size()];
         NUMBER_RESULT    = 0;
 
         for (int i = 0; i < RECTS.size(); i++) {
+            int OffsetPlus = 5;
             if (RECTS.get(i).tl().y - 7 >= 0 && RECTS.get(i).tl().x - 7 >= 0 && RECTS.get(i).br().x+7 <= 1280 && RECTS.get(i).br().y+7 <= 720) {
-
-                Mat mDigit    = mBlur.submat((int) RECTS.get(i).tl().y - 7, (int) RECTS.get(i).br().y + 7, (int) RECTS.get(i).tl().x - 7, (int) RECTS.get(i).br().x + 7);
+                Mat mDigit    = mBlur.submat((int) RECTS.get(i).tl().y - OffsetPlus, (int) RECTS.get(i).br().y + OffsetPlus, (int) RECTS.get(i).tl().x - OffsetPlus, (int) RECTS.get(i).br().x + OffsetPlus);
                 int front     = 0;
                 double Multip = Math.pow(10, RECTS.size() - 1 - i);
-
+                double widthOfRect  = RECTS.get(i).br().x - RECTS.get(i).tl().x;
+                double heightOfRect = RECTS.get(i).br().y - RECTS.get(i).tl().y;
+                double aspectRatio = widthOfRect/heightOfRect;
                 //if (area >= 22000) {
-                if (rect_density.get(i) > 0.7) {
+                if (aspectRatio > 0.3) {
                     stringCode[i] = classiflyDigit(mDigit, desList1);
                     front = (int) (stringCode[i] / 10);
                     NUMBER_RESULT = NUMBER_RESULT + (front * Multip);
@@ -158,7 +163,7 @@ public class ColorBlobDetector {
         }
         if (NUMBER_RESULT >= 1000)
             NUMBER_RESULT = NUMBER_RESULT / 1000;
-        Log.i(TAG, "Number result: " + NUMBER_RESULT);
+        Log.i(ResearchTag, "Number result: " + NUMBER_RESULT);
     }
 
     public static float[] extractHOG (Mat digit){
@@ -222,7 +227,7 @@ public class ColorBlobDetector {
             File file       = new File(sdcard, fileName);
             // If file does not exists, then create it
             if (!file.exists())
-                Log.i(TAG3, "File is not exists");
+                Log.i(ResearchTag, "File is not exists");
 
             FileReader fileReader = new FileReader(file.getAbsoluteFile());
             BufferedReader br     = new BufferedReader(fileReader);
@@ -244,9 +249,23 @@ public class ColorBlobDetector {
         }
         catch (IOException e) {
             e.printStackTrace();
-            Log.e(TAG, "Error when reading model.");
+            Log.e(ResearchTag, "Error when reading model.");
             return false;
         }
+    }
+
+    public boolean isInside(Rect beforeRect, Rect currentRect) {
+        boolean insideValue = false;
+        double[] currentXValue={currentRect.tl().x, currentRect.br().x},
+                currentYValue={currentRect.tl().y, currentRect.br().y},
+                beforeXValue ={beforeRect.tl().x, beforeRect.br().x},
+                beforeYValue ={beforeRect.tl().y, beforeRect.br().y};
+        if (currentXValue[0] > beforeXValue[0] && currentXValue[1] < beforeXValue[1]) {
+            if (currentYValue[0] > beforeYValue[0] && currentYValue[1] < beforeYValue[1]) {
+                insideValue = true;
+            }
+        }
+        return insideValue;
     }
 
     public ArrayList<Rect> GetRects() {
