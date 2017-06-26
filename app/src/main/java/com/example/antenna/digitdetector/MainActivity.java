@@ -129,8 +129,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
     }
 
     public void onCameraViewStarted(int width, int height) {
-        mRgba         = new Mat(height, width, CvType.CV_8UC4);
-        mDetector     = new ColorBlobDetector();
+        mRgba     = new Mat(height, width, CvType.CV_8UC4);
+        mDetector = new ColorBlobDetector();
         mDetector.modelReader();
     }
 
@@ -169,9 +169,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         ArrayList<Rect> rects;
         Mat checkMat = null;
-        mRgba                 = inputFrame.rgba();
-        int frame_height      = mRgba.height();
-        Point text_pos        = new Point(100, frame_height-50);
+        mRgba            = inputFrame.rgba();
+        int frame_height = mRgba.height();
+        Point text_pos   = new Point(100, frame_height-50);
 
         if (isTouch) {
             checkMat      = mDetector.process(mRgba);
@@ -179,7 +179,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
             RectforCal    = (ArrayList<Rect>) rects.clone();
             MatforCal     = checkMat;
             NUMBER_RESULT = 0;
-
             //--- If rect == null program ERROR!!
             if (!rects.isEmpty()) {
                 for (int i = 0; i < rects.size(); i++) {

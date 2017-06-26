@@ -27,7 +27,6 @@ public class ColorBlobDetector {
     public static List<float[]> desList1  = new ArrayList<float[]>();
     public ArrayList<Double> rect_density = new ArrayList<Double>();
     public ArrayList<Rect> RECTS          = new ArrayList<Rect>();
-    public double widthMat=0.0, heightMat=0.0;
 
     // ----- Cache -----
     Mat mGray                = new Mat();
@@ -38,6 +37,7 @@ public class ColorBlobDetector {
     Mat mReducedNoise_t      = new Mat();
     Mat hierarchy            = new Mat();
     MatOfPoint2f ApproxCurve = new MatOfPoint2f();
+    int FrameWidth=0, FrameHeight=0;
 
     // ----- Ellipse Kernel -----
     Mat RectKernel = Imgproc.getStructuringElement (Imgproc.MORPH_RECT, new Size(2, 6));
@@ -51,26 +51,24 @@ public class ColorBlobDetector {
 
     public Mat process (Mat rgbaImage) {
         RECTS.clear();
+        FrameWidth = rgbaImage.width();
+        FrameHeight= rgbaImage.height();
         ArrayList<MatOfPoint> mContours = new ArrayList<>();
-        Mat RectKernel    = Imgproc.getStructuringElement (Imgproc.MORPH_RECT, new Size(5, 7));
-        Mat RectOpenErode = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7,7));
+        Mat RectKernelErode = Imgproc.getStructuringElement (Imgproc.MORPH_RECT, new Size(5,10));
+        Mat RectKernelClose = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5,5));
         double MAXIMUM_AREA = 100000, MINIMUM_AREA = 1500, MIN_RATIO=0.1, MAX_RATIO=0.9, HEIGHT_TH=150;
 
         // ***** Preprocess - 01 *****
         Imgproc.cvtColor    (rgbaImage, mGray, Imgproc.COLOR_RGB2GRAY);
         Imgproc.GaussianBlur(mGray, mBlur, new Size(7,7), 1.5, 1.5);
-        Core.addWeighted    (mGray, 1.5, mBlur, -0.5, 0, mSharp);
-        Imgproc.medianBlur  (mSharp, mBlur, 3);
 
         // ***** Thresholding *****
         Imgproc.adaptiveThreshold(mBlur, mThreshold, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 75, 7.0);
-        Imgproc.morphologyEx(mThreshold, mThreshold, Imgproc.MORPH_ERODE, RectKernel);
+        Imgproc.morphologyEx(mThreshold, mThreshold, Imgproc.MORPH_ERODE, RectKernelErode);
         Imgproc.threshold (mThreshold, mThreshold, 0, 255, Imgproc.THRESH_BINARY_INV);
-        Imgproc.morphologyEx(mThreshold, mThreshold, Imgproc.MORPH_OPEN, RectOpenErode);
+        Imgproc.morphologyEx(mThreshold, mThreshold, Imgproc.MORPH_ERODE, RectKernelClose);
 
         // ***** Find contour and filtering process *****
-        widthMat  = Math.floor(mThreshold.size().width * 0.002);
-        heightMat = Math.floor(mThreshold.size().height * 0.005);
         Imgproc.findContours(mThreshold, mContours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
         for (int i=0; i < mContours.size(); i++) {
@@ -132,23 +130,23 @@ public class ColorBlobDetector {
                     tmpIndexToRemove.add(i);
                 }
             }
-            for (int j=0; j<tmpIndexToRemove.size(); j++)
-                RECTS.remove((int)tmpIndexToRemove.get(j));
+            for (int j=0; j<tmpIndexToRemove.size(); j++) {
+                RECTS.remove((int) tmpIndexToRemove.get(j));
+            }
         }
 
-        // ---- NIGHTMARE IS STARTING ----
         // ---- Feature Extraction -----
         int stringCode[] = new int[RECTS.size()];
         NUMBER_RESULT    = 0;
 
         for (int i = 0; i < RECTS.size(); i++) {
-            int OffsetPlus = 5;
-            if (RECTS.get(i).tl().y - 7 >= 0 && RECTS.get(i).tl().x - 7 >= 0 && RECTS.get(i).br().x+7 <= 1280 && RECTS.get(i).br().y+7 <= 720) {
+            int OffsetPlus = 5, offsetCheck = 7;
+            if (RECTS.get(i).tl().y - offsetCheck >= 0 && RECTS.get(i).tl().x - offsetCheck >= 0 && RECTS.get(i).br().x+offsetCheck <= FrameWidth && RECTS.get(i).br().y+offsetCheck <= FrameHeight) {
                 Mat mDigit    = mBlur.submat((int) RECTS.get(i).tl().y - OffsetPlus, (int) RECTS.get(i).br().y + OffsetPlus, (int) RECTS.get(i).tl().x - OffsetPlus, (int) RECTS.get(i).br().x + OffsetPlus);
                 int front     = 0;
                 double Multip = Math.pow(10, RECTS.size() - 1 - i);
-                double widthOfRect  = RECTS.get(i).br().x - RECTS.get(i).tl().x;
-                double heightOfRect = RECTS.get(i).br().y - RECTS.get(i).tl().y;
+                double widthOfRect = RECTS.get(i).br().x - RECTS.get(i).tl().x;
+                double heightOfRect= RECTS.get(i).br().y - RECTS.get(i).tl().y;
                 double aspectRatio = widthOfRect/heightOfRect;
                 //if (area >= 22000) {
                 if (aspectRatio > 0.3) {
@@ -167,9 +165,10 @@ public class ColorBlobDetector {
     }
 
     public static float[] extractHOG (Mat digit){
-        Mat rDigit              = new Mat();
+        Mat rDigit                  = new Mat();
+        Size standardSizeOfSubImage = new Size(64, 128);
         // -- Default size = (64,128);
-        Imgproc.resize          (digit, rDigit, new Size(64, 128));
+        Imgproc.resize          (digit, rDigit, standardSizeOfSubImage);
         final HOGDescriptor hog = new HOGDescriptor();
         MatOfFloat descriptors  = new MatOfFloat();
         MatOfPoint locations    = new MatOfPoint();
@@ -187,15 +186,15 @@ public class ColorBlobDetector {
 
     public static int classiflyDigit(Mat digit, List<float[]> model) {
         float[] mDescriptors1 = extractHOG(digit);
+        int special_min;
         int index_min         = 0;
-        int special_min       = 0;
         double min            = 100000;
         int index_mins[]      = new int[model.size()];    // --- 220 size
         double mins[]         = new double[model.size()]; // --- 220 size
+
         for(int i=0 ; i < model.size(); i++) {
             float[] mDescriptors2 = model.get(i);
-            double dist           = disHOG( mDescriptors1 ,  mDescriptors2);
-
+            double dist   = disHOG( mDescriptors1 ,  mDescriptors2);
             index_mins[i] = i;
             mins[i]       = dist;
             if(dist < min) {
