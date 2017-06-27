@@ -22,15 +22,17 @@
         android:id="@+id/linearLayout"
         android:layout_alignParentBottom="true">
         <Button
+            android:id="@+id/checkWiFiButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_toServer"
-            android:onClick="checkWifi" />
+            android:onClick="PerformExcelProcess" />
         <Button
+            android:id="@+id/readExcelFileButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_excel"
-            android:onClick="excelProcess" />
+            android:onClick="PerformExcelProcess" />
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -42,10 +44,11 @@
             android:text="@string/btn_retake"
             android:onClick="retakeImage" />
         <Button
+            android:id="@+id/sendExcelFileButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_send"
-            android:onClick="acceptData" />
+            android:onClick="PerformExcelProcess" />
     </LinearLayout>
 
     <LinearLayout

@@ -31,7 +31,7 @@ import jxl.read.biff.BiffException;
 import jxl.write.Number;
 
 public class ExcelProcessing {
-    String TAG = "Excel";
+    String excelTag = "Excel";
     String db_name, product_type;
     File input_workbook;
     WritableWorkbook wa;
@@ -63,7 +63,7 @@ public class ExcelProcessing {
                     JSch jsch = new JSch();
                     session   = jsch.getSession("root", "192.168.60.1", SFTPPORT);
                     session.setPassword("welc0me");
-                    Log.d(TAG, "Set password successfully.");
+                    Log.d(excelTag, "Set password successfully.");
 
                     Properties config = new Properties();
                     config.put("StrictHostKeyChecking", "no");
@@ -71,7 +71,7 @@ public class ExcelProcessing {
                     session.connect();
 
                     channel     = session.openChannel("sftp");
-                    Log.d(TAG, "Open channel SFTP successfully.");
+                    Log.d(excelTag, "Open channel SFTP successfully.");
 
                     channelSftp = (ChannelSftp)channel;
                     channelSftp.connect();
@@ -142,7 +142,7 @@ public class ExcelProcessing {
 
         ArrayList<String> customer_list = new ArrayList<>();
         Sheet customer_sheet = w.getSheet("Customer_"+db_name+"_"+product_type+"_1");
-        Log.i(TAG, "Customer_"+db_name+"_"+product_type+"_1");
+        Log.i(excelTag, "Customer_"+db_name+"_"+product_type+"_1");
 
         // === Typically list of customer name start in cell(3,5) ===
         int i = 5;

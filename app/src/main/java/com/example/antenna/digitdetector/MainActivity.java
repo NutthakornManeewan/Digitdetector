@@ -143,29 +143,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
         isTouch    = true;
     }
 
-    public void excelProcess (View view) throws IOException, BiffException {
-        excelP.readExcelSetup();
-        customer_list = excelP.readExcelCustomerSheet();
-        adapter_customer = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, customer_list);
-        adapter_customer.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner_customer.setAdapter(adapter_customer);
-        spinner_customer.setOnItemSelectedListener(this);
-    }
-
-    // --- If click to send data, do this method ---
-    public void acceptData  (View view) throws IOException, WriteException {
-        if (NUMBER_RESULT >= 0) {
-              excelP.WriteWorkbook(customer_index, dropdown_getindex.index, NUMBER_RESULT);
-              storageDisk = new StorageDisk("File_order_Betagro");
-              storageDisk.connectToDisk();
-        }
-    }
-    public void checkWifi  (View view) throws IOException, BiffException {
-        excelP = new ExcelProcessing("File_order_Betagro");
-        excelP.downloadFileExcel();
-        Log.i("Excel", "Check WiFi and Download file successfully!");
-    }
-
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         ArrayList<Rect> rects;
         Mat checkMat = null;
@@ -265,5 +242,30 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
 
+    }
+
+    public void PerformExcelProcess(View v) throws IOException, BiffException, WriteException {
+        switch (v.getId()) {
+            case R.id.readExcelFileButton :
+                excelP.readExcelSetup();
+                customer_list = excelP.readExcelCustomerSheet();
+                adapter_customer = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, customer_list);
+                adapter_customer.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinner_customer.setAdapter(adapter_customer);
+                spinner_customer.setOnItemSelectedListener(this);
+                break;
+            case R.id.sendExcelFileButton :
+                if (NUMBER_RESULT >= 0) {
+                    excelP.WriteWorkbook(customer_index, dropdown_getindex.index, NUMBER_RESULT);
+                    storageDisk = new StorageDisk("File_order_Betagro");
+                    storageDisk.connectToDisk();
+                }
+                break;
+            case R.id.checkWiFiButton :
+                excelP = new ExcelProcessing("File_order_Betagro");
+                excelP.downloadFileExcel();
+                Log.i("Excel", "Check WiFi and Download file successfully!");
+                break;
+        }
     }
 }
