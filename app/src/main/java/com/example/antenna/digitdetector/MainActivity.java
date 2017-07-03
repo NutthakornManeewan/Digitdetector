@@ -262,6 +262,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, Ada
                 }
                 break;
             case R.id.checkWiFiButton :
+                //  @ -- Download file MS-Excel from Wireless networks
                 excelP = new ExcelProcessing("File_order_Betagro");
                 excelP.downloadFileExcel();
                 Log.i("Excel", "Check WiFi and Download file successfully!");

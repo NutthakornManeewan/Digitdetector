@@ -31,7 +31,7 @@ import jxl.read.biff.BiffException;
 import jxl.write.Number;
 
 public class ExcelProcessing {
-    String excelTag = "Excel";
+    final String excelTag = "Excel";
     String db_name, product_type;
     File input_workbook;
     WritableWorkbook wa;
@@ -45,8 +45,9 @@ public class ExcelProcessing {
     private WritableCellFormat generalCell;
     private ArrayList<Integer> customer_index = new ArrayList<>();
 
+    // @ -- Constructor : Input file name
     ExcelProcessing(String file_name) throws IOException, BiffException {
-        input_file           = file_name;
+        input_file = file_name;
     }
 
     public void downloadFileExcel() {
@@ -56,13 +57,23 @@ public class ExcelProcessing {
                 Session session         = null;
                 Channel channel         = null;
                 ChannelSftp channelSftp = null;
+                String defaultIPAddress = "192.168.60.1";
+                String defaultUsername  = "root";
+                String defaultPassword  = "welc0me";
                 int SFTPPORT            = 22;
                 String workDir          = "/home/root/";
 
                 try {
+                    /* @ SSH Api this code specific for this project (SSH port = 22)
+                     *   Western digital: My passport wireless
+                     *   OS: Linux
+                     *   Default IP Address: 192.168.60.1
+                     *   Default username  : root
+                     *   Default password  : welc0me
+                     */
                     JSch jsch = new JSch();
-                    session   = jsch.getSession("root", "192.168.60.1", SFTPPORT);
-                    session.setPassword("welc0me");
+                    session   = jsch.getSession(defaultUsername, defaultIPAddress, SFTPPORT);
+                    session.setPassword(defaultPassword);
                     Log.d(excelTag, "Set password successfully.");
 
                     Properties config = new Properties();
@@ -70,7 +81,7 @@ public class ExcelProcessing {
                     session.setConfig(config);
                     session.connect();
 
-                    channel     = session.openChannel("sftp");
+                    channel = session.openChannel("sftp");
                     Log.d(excelTag, "Open channel SFTP successfully.");
 
                     channelSftp = (ChannelSftp)channel;
